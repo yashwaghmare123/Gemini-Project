@@ -8,5 +8,13 @@
     "react-chartjs-2": "^5.3.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.8.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.1"
+  },
+  "scripts": {
+  "test": "jest"
   }
 }
+

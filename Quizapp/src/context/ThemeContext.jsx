@@ -1,28 +1,54 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setTheme } from '../store/slices/uiSlice';
 
-export const ThemeContext = createContext();
+const ThemeContext = createContext();
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("light");
+  const dispatch = useDispatch();
+  const { theme } = useSelector(state => state.ui);
 
-  // Load saved theme on first render
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
+    // Apply theme to document
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-  }, []);
 
-  // Toggle between light/dark
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    // Save to localStorage
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    // Initialize theme from localStorage or system preference
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme) {
+      dispatch(setTheme(savedTheme));
+    } else if (systemPrefersDark) {
+      dispatch(setTheme('dark'));
+    }
+  }, [dispatch]);
+
+  const value = {
+    theme,
+    setTheme: (newTheme) => dispatch(setTheme(newTheme)),
+    toggleTheme: () => dispatch(setTheme(theme === 'light' ? 'dark' : 'light'))
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div className={theme}>{children}</div>
+    <ThemeContext.Provider value={value}>
+      {children}
     </ThemeContext.Provider>
   );
 };
